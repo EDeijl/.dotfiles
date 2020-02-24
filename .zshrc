@@ -1,7 +1,10 @@
-if [ -z "$TMUX" ] # When zsh is started attach to current tmux session or create a new one
-then
-    tmux attach -t TMUX || tmux new -s TMUX
-fi
+#if [ -z "$TMUX" ] # When zsh is started attach to current tmux session or create a new one
+#then
+#	tmux attach -t TMUX || tmux new -s TMUX
+#fi
+
+export EDITOR="nvim"
+alias vim="nvim"
 
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -15,6 +18,10 @@ plugins=(
   zsh-completions # More completions
   zsh-syntax-highlighting # Fish shell like syntax highlighting for Zsh
   colored-man-pages # Self-explanatory
+  kubetail
+  kubectl
+  docker
+docker-compose
   )
 autoload -U compinit && compinit # reload completions for zsh-completions
 
@@ -33,18 +40,18 @@ host            # Hostname section
 git             # Git section (git_branch + git_status)
 # hg            # Mercurial section (hg_branch  + hg_status)
 # package       # Package version
-# node          # Node.js section
+node          # Node.js section
 ruby          # Ruby section
 # elixir        # Elixir section
 # xcode         # Xcode section
 # swift         # Swift section
-# golang        # Go section
+golang        # Go section
 # php           # PHP section
 rust          # Rust section
 haskell       # Haskell Stack section
 # julia         # Julia section
 docker        # Docker section
-# aws           # Amazon Web Services section
+aws           # Amazon Web Services section
 # venv          # virtualenv section
 # conda         # conda virtualenv section
 # pyenv         # Pyenv section
@@ -77,3 +84,45 @@ pastefinish() {
 zstyle :bracketed-paste-magic paste-init pasteinit
 zstyle :bracketed-paste-magic paste-finish pastefinish
 
+eval "$(rbenv init -)"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+autoload -U add-zsh-hook
+load-nvmrc() {
+	local node_version="$(nvm version)"
+	local  nvmrc_path="$(nvm_find_nvmrc)"
+	if [ -n "$nvmrc_path" ]; then
+		local nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+		
+		if [ "$nvmrc_node_version" = "N/A" ]; then
+			nvm install
+		elif [ "$nvmrc_node_version" != "$node_version" ]; then
+			nvm use
+		fi
+	elif [ "$node_version" != "$(nvm version default)" ]; then
+		echo "Reverting to nvm default version"
+		nvm use default
+	fi
+}
+add-zsh-hook chpwd load-nvmrc
+load-nvmrc
+
+if [ $commands[kubectl] ]; then
+	source <(kubectl completion zsh)
+fi
+
+alias be="bundle exec"
+
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow -g "!{.git,node_modules}/*" 2> /dev/null'
+EXPORT_FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+
+
+alias scrotclip='scrot -s ~/foo.png && xclip -selection clipboard -t image/png ~/foo.png && rm ~/foo.png'
+alias ls='exa'
+
+export MSBuildSDKsPath=/usr/share/dotnet/sdk/$(dotnet --version)/Sdks
