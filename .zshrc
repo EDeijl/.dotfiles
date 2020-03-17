@@ -5,6 +5,7 @@
 
 export EDITOR="nvim"
 alias vim="nvim"
+alias ssh="TERM=xterm ssh"
 
 export ZSH="$HOME/.oh-my-zsh"
 
